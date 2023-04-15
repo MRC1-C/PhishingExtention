@@ -1,0 +1,19 @@
+{
+    "cimbbank": {
+        "url": "https://www.cimbbank.com.vn",
+        "domain_to_filter": [
+            "cimbbank",
+            "cimb",
+            "cgs-cimb",
+            "cimbislamic",
+            "octobycimb",
+            "cimbniaga"
+        ]
+    },
+    "vietcapitalbank": {
+        "url": "vietcapitalbank",
+        "domain_to_filter": [
+            "vietcapitalbank"
+        ]
+    }
+}
