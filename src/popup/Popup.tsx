@@ -2,7 +2,7 @@ import './Popup.css'
 import { useEffect, useState } from 'react'
 import { AppstoreOutlined, CloseOutlined, MailOutlined, MenuUnfoldOutlined, PieChartOutlined, PoweroffOutlined, SettingOutlined, StopOutlined, WarningOutlined } from '@ant-design/icons'
 import { Drawer, Menu, MenuProps, Progress, Steps } from 'antd'
-
+import { postRequest } from "../hooks/api";
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -39,9 +39,9 @@ const Popup = () => {
       let queryOptions = { active: true };
       let [{ url }] = await chrome.tabs.query(queryOptions);
       let domain = (new URL('' + url));
-      chrome.storage.local.get(['state', String(domain.hostname)], function (result) {
+      chrome.storage.local.get(['state', String(domain.href)], function (result) {
         setState(result.state)
-        setPercent(result[String(domain.hostname)])
+        setPercent(result[String(domain.href)])
       });
       setUrl(domain.hostname)
     })()
@@ -80,17 +80,23 @@ const Popup = () => {
   }
 
   const handleLoading = async () => {
-    let a = urlPromise;
+    let queryOptions = { active: true };
+    let [{ url }] = await chrome.tabs.query(queryOptions);
+    let domain = (new URL('' + url));
+    let a = postRequest('/predict', {
+      "url": domain.href
+    });
+    console.log(location.href)
     let result = await checkStatus(a);
 
     let s = setInterval(async () => {
       result = await checkStatus(a);
       let value = 0
       if (result.state == "resolved") {
-        value = Math.floor(result.value);
+        value = Math.floor(result.value * 100);
         setState('result')
         setPercent(value)
-        chrome.storage.local.set({ state: 'result', [url.toString()]: value }, function () {
+        chrome.storage.local.set({ state: 'result', [domain.href.toString()]: value }, function () {
           // start timer
         });
         chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
@@ -180,7 +186,7 @@ const Popup = () => {
             }
             <div className='text-[16px]' style={{ color: Number(percent) < 33 ? 'rgba(249, 57, 32, 1)' : Number(percent) < 66 ? 'rgba(255, 213, 0, 1)' : 'rgba(58, 204, 108, 1)' }}>
               {
-                state == "off" ? "Tips" : state =="loading"?"Loading":Number(percent) < 66 ? "Cảnh báo" : "An toàn"
+                state == "off" ? "Tips" : state == "loading" ? "Loading" : Number(percent) < 66 ? "Cảnh báo" : "An toàn"
               }
             </div>
           </div>

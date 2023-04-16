@@ -1,4 +1,4 @@
-// import { getRequest, postRequest } from "../hooks/api";
+import { getRequest, postRequest } from "../hooks/api";
 // import src from "./src.json";
 
 // const isValidUrl = (urlString) => {
@@ -144,7 +144,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 const handleLoading = async () => {
-  let a = urlPromise;
+  let a = postRequest('/predict',{
+    "url": location.href
+  });
 
   let result = await checkStatus(a);
 
@@ -153,29 +155,29 @@ const handleLoading = async () => {
     let j = 0;
     let value = 0
     if (result.state == "resolved") {
-      value = Math.floor(result[i].value);
-    }
-    let domain = new URL("" + location.href);
-    chrome.storage.local.set(
-      { state: "result", [domain.hostname.toString()]: value },
-      function () {
-        // start timer
+      value = Math.floor(result.value*100);
+      let domain = new URL("" + location.href);
+      chrome.storage.local.set(
+        { state: "result", [domain.href.toString()]: value },
+        function () {
+          // start timer
+        }
+      );
+      if (value < 66) {
+        addNotification();
       }
-    );
-    if (value < 66) {
-      addNotification();
+      clearInterval(s);
     }
-    clearInterval(s);
   }, 100);
 };
 
 let domain = new URL("" + location.href);
-chrome.storage.local.get(["state", String(domain.hostname)], function (result) {
-  if (result.state != "off" && result[String(domain.hostname)] == null) {
+chrome.storage.local.get(["state", String(domain.href)], function (result) {
+  if (result.state != "off" && result[String(domain.href)] == null) {
     handleLoading();
   } else {
   }
-  if (result[String(domain.hostname)] < 66 && result.state != "off") {
+  if (result[String(domain.href)] < 66 && result.state != "off") {
     addNotification();
   }
 });
